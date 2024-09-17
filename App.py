@@ -7,6 +7,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.express as px #for graphs and data visualization
 import pickle
+import gzip
 
 # CSS Styling
 with open('style.css') as f:
@@ -69,7 +70,7 @@ def show_home_page():
         
         st.pyplot(fig)
 
-    st.markdown('<h3 class="sub-header">3. Diabetes y Enfermedad Coronaria por Grupo de Edad y Género</h2>', unsafe_allow_html=True)
+    st.markdown('<h3 class="sub-header">3. Diabetes y Enfermedad Coronaria por Grupo de Edad y Género</h3>', unsafe_allow_html=True)
 
     # Subplot para la visualización de diabetes y CHD por edad y género
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
@@ -78,21 +79,21 @@ def show_home_page():
     plot_count(df, 'age_groups', axes[0], title='Diabetes por Grupo de Edad')
     axes[0].legend(['Negativo', 'Positivo'], title='Diabetes')
     
-    # Segunda subgráfica: CHD por Género
-    plot_count(df, 'gender', axes[1], title='Enfermedad Coronaria por Género')
-    axes[1].legend(['Negativo', 'Positivo'], title='Estado CHD')
+    # Segunda subgráfica: ECV por Género
+    plot_count(df, 'gender', axes[1], title='Enfermedad Cardiovascular por Género')
+    axes[1].legend(['Negativo', 'Positivo'], title='Estado ECV')
     axes[1].set_xticks([0, 1])
     axes[1].set_xticklabels(['Mujer', 'Hombre'])
 
     st.pyplot(fig)
 
 def show_prediction_page():
-    st.markdown('<h1 class="my-title">Predicción de Enfermedad Coronaria</h1>', unsafe_allow_html=True)
-    st.markdown('<h3 class="sub-header">1- Introduzca sus datos para predecir el riesgo de desarrollar enfermedad coronaria en los próximos diez años. </h3>', unsafe_allow_html=True)
+    st.markdown('<h1 class="my-title">Predicción de Enfermedad Cardiovascular</h1>', unsafe_allow_html=True)
+    st.markdown('<h3 class="sub-header">1- Introduzca sus datos para predecir el riesgo de desarrollar enfermedad cardiovascular en los próximos diez años. </h3>', unsafe_allow_html=True)
 
     @st.cache_data
     def load_model_and_scaler():
-        with open('rf_hyper_model.pkl', 'rb') as model_file, open('scaler.pkl', 'rb') as scaler_file:
+        with gzip.open('best_random_forest_model_compressed.pkl', 'rb') as model_file, open('scaler.pkl', 'rb') as scaler_file:
             model = pickle.load(model_file)
             scaler = pickle.load(scaler_file)
         from copy import deepcopy
@@ -128,7 +129,7 @@ def show_prediction_page():
         prediction = model.predict(user_data_scaled)
         probability = model.predict_proba(user_data_scaled)[0][1]
 
-        alert_type = "Alto Riesgo de CHD ⚠️" if prediction[0] == 1 else "Bajo Riesgo de CHD ✅"
+        alert_type = "Alto Riesgo de ECV ⚠️" if prediction[0] == 1 else "Bajo Riesgo de ECV ✅"
         alert_color = "#ffa1a1" if prediction[0] == 1 else "#a1ffad"
         st.markdown(f"""
             <div style="background-color: {alert_color}; padding: 10px; border-radius: 5px; text-align: center;">
@@ -138,17 +139,17 @@ def show_prediction_page():
 
 def main():
     with st.sidebar:
-        st.markdown('<h1 class="sidebar-title">Enfermedad Coronaria</h1>', unsafe_allow_html=True)
+        st.markdown('<h1 class="sidebar-title">Enfermedad Cardiovascular</h1>', unsafe_allow_html=True)
         
         # Use a native selectbox for navigation
-        selected = st.sidebar.selectbox("Selecciona una opción", ["Dashboard CHD", "Predicción CHD"])
+        selected = st.sidebar.selectbox("Selecciona una opción", ["Dashboard", "Aplicación"])
        
-    if selected == "Dashboard CHD":
+    if selected == "Dashboard":
         show_home_page()
-    elif selected == "Predicción CHD":
+    elif selected == "Aplicación":
         show_prediction_page()
 
 if __name__ == "__main__":
     main()
 
-st.sidebar.markdown("<h4 style='color: blue; font-size: 16px;'>Desarrollado por DSO Immune 🌐</h4>", unsafe_allow_html=True)
+st.sidebar.markdown("<h4 style='color: blue; font-size: 16px;'>Desarrollado por DSO Immune Grp1 🌐</h4>", unsafe_allow_html=True)
