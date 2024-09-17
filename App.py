@@ -1,9 +1,9 @@
-#import libraries
+# Import libraries
 import streamlit as st  # for creating web apps
 import numpy as np  # for numerical computing
-import pandas as pd  # for dataframe manipulation
-from matplotlib import pyplot as plt
-import plotly.graph_objects as go
+import pandas as pd # for dataframe and manipulation
+from matplotlib import pyplot as plt 
+import plotly.graph_objects as go 
 from plotly.subplots import make_subplots
 import plotly.express as px  # for graphs and data visualization
 import pickle
@@ -14,43 +14,36 @@ with open('style.css') as f:
     css = f.read()
 st.markdown(f'<style>{css}</style>', unsafe_allow_html=True)
 
-# Download the model from Google Drive
-@st.cache_data
-def download_model():
-    # File ID from your Google Drive link
-    file_id = '13jKzu4qLz12rVKho60oi0kAb5il4JN6D'
-    
-    # Construct the download URL
-    download_url = f'https://drive.google.com/uc?id={file_id}'
-    
-    # Specify the output file name
-    output = 'rf_hyper_model.pkl'
-    
-    # Download the file from Google Drive
-    gdown.download(download_url, output, quiet=False)
-    return output
-
-# Load model and scaler
-@st.cache_data
-def load_model_and_scaler():
-    # Download model from Google Drive
-    model_path = download_model()
-
-    # Load the model and scaler
-    with open(model_path, 'rb') as model_file, open('scaler.pkl', 'rb') as scaler_file:
-        model = pickle.load(model_file)
-        scaler = pickle.load(scaler_file)
-    
-    return model, scaler
-
 # Loading the dataset
-@st.cache_resource
+@st.cache_resource  # Cache the data loading step to enhance performance
 def load_data():
     return pd.read_csv('framingham_clean.csv')
 
 df = load_data()
 
-# Plot functions using Matplotlib
+# Google Drive file ID for the model
+file_id = '13jKzu4qLz12rVKho60oi0kAb5il4JN6D'
+
+# Function to download the model from Google Drive
+def download_model_from_drive(file_id):
+    url = f"https://drive.google.com/uc?id={file_id}"
+    output = 'best_random_forest_model.pkl'
+    gdown.download(url, output, quiet=False)
+    return output
+
+# Function to load model and scaler
+@st.cache_data
+def load_model_and_scaler():
+    model_path = download_model_from_drive(file_id)
+    with open(model_path, 'rb') as model_file, open('scaler.pkl', 'rb') as scaler_file:
+        model = pickle.load(model_file)
+        scaler = pickle.load(scaler_file)
+    from copy import deepcopy
+    return deepcopy(model), deepcopy(scaler)
+
+model, scaler = load_model_and_scaler()
+
+# Replace Seaborn with Matplotlib for visualization
 def plot_histogram(df, column, ax, title=None):
     ax.hist(df[column], bins=20, color='blue', alpha=0.7)
     ax.set_title(f'Distribución de {column}' if not title else title, fontsize=14)
@@ -64,21 +57,20 @@ def plot_count(df, column, ax, title=None):
     ax.set_xlabel(column, fontsize=12)
     ax.set_ylabel('Cantidad', fontsize=12)
 
-# Home Page
 def show_home_page():
-    st.markdown('<h1 class="my-title ">Estudio del Corazón de Framingham</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="my-title">Estudio del Corazón de Framingham</h1>', unsafe_allow_html=True)
     st.markdown('<h3 class="sub-header">1- Distribución de Edad y Género en el Conjunto de Datos.</h3>', unsafe_allow_html=True)
     
     # Plotting
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
     most_frequent_age = df['age'].mode().values[0]
     
-    # Histograma de edades
+    # Histogram of ages
     plot_histogram(df, 'age', ax1, title='Distribución de la Edad (Edad Más Frecuente)')
     ax1.annotate(f'Edad Más Frecuente: {most_frequent_age}', xy=(most_frequent_age, 0), xytext=(most_frequent_age, 50),
                  arrowprops=dict(arrowstyle='->', lw=1.5, color='red'), color='red')
 
-    # Gráfico de barras para género
+    # Bar chart for gender
     plot_count(df, 'gender', ax2, title='Distribución de Género')
     ax2.set_xticks([0, 1])
     ax2.set_xticklabels(['Mujer', 'Hombre'])
@@ -86,7 +78,7 @@ def show_home_page():
     st.pyplot(fig)
 
     with st.expander("2. Distribución de Factores de Riesgo Cardiovascular Claves con Etiquetas de Asimetría"):
-        # Crear gráficos para múltiples variables
+        # Create plots for multiple variables
         fig, axes = plt.subplots(2, 3, figsize=(15, 10))
         variables = ['glucose', 'totChol', 'sysBP', 'diaBP', 'BMI', 'heartRate']
         
@@ -97,16 +89,16 @@ def show_home_page():
         
         st.pyplot(fig)
 
-    st.markdown('<h3 class="sub-header">3. Diabetes y Enfermedad Cardiovascular por Grupo de Edad y Género</h2>', unsafe_allow_html=True)
+    st.markdown('<h3 class="sub-header">3. Diabetes y Enfermedad Cardiovascular por Grupo de Edad y Género</h3>', unsafe_allow_html=True)
 
-    # Subplot para la visualización de diabetes y ECV por edad y género
+    # Subplot for diabetes and CHD by age and gender
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
 
-    # Primera subgráfica: Diabetes por Grupo de Edad
+    # First subplot: Diabetes by Age Group
     plot_count(df, 'age_groups', axes[0], title='Diabetes por Grupo de Edad')
     axes[0].legend(['Negativo', 'Positivo'], title='Diabetes')
     
-    # Segunda subgráfica: ECV por Género
+    # Second subplot: CHD by Gender
     plot_count(df, 'gender', axes[1], title='Enfermedad Cardiovascular por Género')
     axes[1].legend(['Negativo', 'Positivo'], title='Estado ECV')
     axes[1].set_xticks([0, 1])
@@ -114,13 +106,10 @@ def show_home_page():
 
     st.pyplot(fig)
 
-# Prediction Page
 def show_prediction_page():
     st.markdown('<h1 class="my-title">Predicción de Enfermedad Cardiovascular</h1>', unsafe_allow_html=True)
-    st.markdown('<h3 class="sub-header">1- Introduzca sus datos para predecir el riesgo de desarrollar enfermedad cardiovascular en los próximos diez años. </h3>', unsafe_allow_html=True)
+    st.markdown('<h3 class="sub-header">1- Introduzca sus datos para predecir el riesgo de desarrollar enfermedad cardiovascular en los próximos diez años.</h3>', unsafe_allow_html=True)
 
-    model, scaler = load_model_and_scaler()
-    
     with st.sidebar:
         st.markdown('<h2 style="color: orange; text-align: center;">Ingrese sus detalles:</h2>', unsafe_allow_html=True)
         sysBP = st.number_input('Presión Arterial Sistólica', 80, 200, 120)
@@ -157,12 +146,13 @@ def show_prediction_page():
             </div>
         """, unsafe_allow_html=True)
 
-# Main Function
 def main():
     with st.sidebar:
         st.markdown('<h1 class="sidebar-title">Enfermedad Cardiovascular</h1>', unsafe_allow_html=True)
+        
+        # Use a native selectbox for navigation
         selected = st.sidebar.selectbox("Selecciona una opción", ["Dashboard", "Aplicación"])
-    
+       
     if selected == "Dashboard":
         show_home_page()
     elif selected == "Aplicación":
