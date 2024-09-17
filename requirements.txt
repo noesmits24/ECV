@@ -1,5 +1,5 @@
 streamlit==1.27.1
-pandas==2.0.3
-numpy==1.24.3
-setuptools==65.5.0  # This includes distutils, required for building
-gdown==4.7.1  # To handle downloading the model from Google Drive
+pandas==2.0.3  # Make sure this matches the version you want
+numpy>=1.22.4  # Ensure compatibility with pandas
+gdown==4.7.1   # For downloading files from Google Drive
+setuptools>=65.5.0  # Needed for building some dependencies like numpy
