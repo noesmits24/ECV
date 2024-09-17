@@ -1,14 +1,13 @@
 #import libraries
 import streamlit as st  # for creating web apps
-from streamlit_option_menu import option_menu
 import numpy as np  # for numerical computing
 import pandas as pd # for dataframe and manipulation
-import seaborn as sns # for graphs and data visualization
+import seaborn as sns #for graphs and data visualization
 from matplotlib import pyplot as plt 
 import plotly.graph_objects as go 
 from plotly.subplots import make_subplots
-import plotly.express as px # for graphs and data visualization
-sns.set() # setting seaborn as default for plots
+import plotly.express as px #for graphs and data visualization
+sns.set() #setting seaborn as default for plots
 import pickle
 
 # CSS Styling
@@ -178,7 +177,9 @@ def show_prediction_page():
 def main():
     with st.sidebar:
         st.markdown('<h1 class="sidebar-title">Enfermedad Coronaria</h1>', unsafe_allow_html=True)
-        selected = option_menu(None, ["Dashboard CHD", "Predicción CHD"], icons=["bar-chart", "robot"], default_index=0)
+        
+        # Use a native selectbox for navigation
+        selected = st.sidebar.selectbox("Selecciona una opción", ["Dashboard CHD", "Predicción CHD"])
        
     if selected == "Dashboard CHD":
         show_home_page()
