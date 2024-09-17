@@ -1,8 +1,8 @@
 --only-binary=:all:
 
 streamlit==1.27.1
-pandas==2.0.3  # La versión original que solicitabas
-numpy==1.22.4  # Versión mínima requerida para pandas 2.0.3
+pandas==2.1.1  # Versión compatible y con wheel disponible
+numpy==1.22.4  # Compatible con pandas 2.x
 matplotlib==3.7.2
 plotly==5.9.0
 scikit-learn==1.2.2  # Versión estable y compatible
