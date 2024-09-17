@@ -1,29 +1,56 @@
 #import libraries
 import streamlit as st  # for creating web apps
 import numpy as np  # for numerical computing
-import pandas as pd # for dataframe and manipulation
-from matplotlib import pyplot as plt 
-import plotly.graph_objects as go 
+import pandas as pd  # for dataframe manipulation
+from matplotlib import pyplot as plt
+import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import plotly.express as px #for graphs and data visualization
+import plotly.express as px  # for graphs and data visualization
 import pickle
+import gdown  # Importing gdown to download from Google Drive
 
 # CSS Styling
 with open('style.css') as f:
     css = f.read()
 st.markdown(f'<style>{css}</style>', unsafe_allow_html=True)
 
-# Use the st.markdown function to apply the CSS to Streamlit app
-st.markdown(f'<style>{css}</style>', unsafe_allow_html=True)
+# Download the model from Google Drive
+@st.cache_data
+def download_model():
+    # File ID from your Google Drive link
+    file_id = '13jKzu4qLz12rVKho60oi0kAb5il4JN6D'
+    
+    # Construct the download URL
+    download_url = f'https://drive.google.com/uc?id={file_id}'
+    
+    # Specify the output file name
+    output = 'rf_hyper_model.pkl'
+    
+    # Download the file from Google Drive
+    gdown.download(download_url, output, quiet=False)
+    return output
+
+# Load model and scaler
+@st.cache_data
+def load_model_and_scaler():
+    # Download model from Google Drive
+    model_path = download_model()
+
+    # Load the model and scaler
+    with open(model_path, 'rb') as model_file, open('scaler.pkl', 'rb') as scaler_file:
+        model = pickle.load(model_file)
+        scaler = pickle.load(scaler_file)
+    
+    return model, scaler
 
 # Loading the dataset
-@st.cache_resource # Cache the data loading step to enhance performance
+@st.cache_resource
 def load_data():
     return pd.read_csv('framingham_clean.csv')
 
 df = load_data()
 
-# Reemplazar Seaborn por Matplotlib para la visualización
+# Plot functions using Matplotlib
 def plot_histogram(df, column, ax, title=None):
     ax.hist(df[column], bins=20, color='blue', alpha=0.7)
     ax.set_title(f'Distribución de {column}' if not title else title, fontsize=14)
@@ -37,6 +64,7 @@ def plot_count(df, column, ax, title=None):
     ax.set_xlabel(column, fontsize=12)
     ax.set_ylabel('Cantidad', fontsize=12)
 
+# Home Page
 def show_home_page():
     st.markdown('<h1 class="my-title ">Estudio del Corazón de Framingham</h1>', unsafe_allow_html=True)
     st.markdown('<h3 class="sub-header">1- Distribución de Edad y Género en el Conjunto de Datos.</h3>', unsafe_allow_html=True)
@@ -69,9 +97,9 @@ def show_home_page():
         
         st.pyplot(fig)
 
-    st.markdown('<h3 class="sub-header">3. Diabetes y Enfermedad Cardiovascular por Grupo de Edad y Género</h3>', unsafe_allow_html=True)
+    st.markdown('<h3 class="sub-header">3. Diabetes y Enfermedad Cardiovascular por Grupo de Edad y Género</h2>', unsafe_allow_html=True)
 
-    # Subplot para la visualización de diabetes y CHD por edad y género
+    # Subplot para la visualización de diabetes y ECV por edad y género
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
 
     # Primera subgráfica: Diabetes por Grupo de Edad
@@ -86,17 +114,10 @@ def show_home_page():
 
     st.pyplot(fig)
 
+# Prediction Page
 def show_prediction_page():
     st.markdown('<h1 class="my-title">Predicción de Enfermedad Cardiovascular</h1>', unsafe_allow_html=True)
     st.markdown('<h3 class="sub-header">1- Introduzca sus datos para predecir el riesgo de desarrollar enfermedad cardiovascular en los próximos diez años. </h3>', unsafe_allow_html=True)
-
-    @st.cache_data
-    def load_model_and_scaler():
-        with open('best_random_forest_model_compressed.pkl', 'rb') as model_file, open('scaler.pkl', 'rb') as scaler_file:
-            model = pickle.load(model_file)
-            scaler = pickle.load(scaler_file)
-        from copy import deepcopy
-        return deepcopy(model), deepcopy(scaler)
 
     model, scaler = load_model_and_scaler()
     
@@ -136,13 +157,12 @@ def show_prediction_page():
             </div>
         """, unsafe_allow_html=True)
 
+# Main Function
 def main():
     with st.sidebar:
         st.markdown('<h1 class="sidebar-title">Enfermedad Cardiovascular</h1>', unsafe_allow_html=True)
-        
-        # Use a native selectbox for navigation
         selected = st.sidebar.selectbox("Selecciona una opción", ["Dashboard", "Aplicación"])
-       
+    
     if selected == "Dashboard":
         show_home_page()
     elif selected == "Aplicación":
