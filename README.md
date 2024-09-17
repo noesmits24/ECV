@@ -2,10 +2,6 @@
 1. **Introducción**: Explicación breve de lo que hace la aplicación.
 2. **Características**: Las funcionalidades clave que incluye la aplicación.
 3. **Requisitos**: Las dependencias que necesita la aplicación.
-4. **Instalación**: Instrucciones para clonar, instalar dependencias y ejecutar la aplicación.
-5. **Uso**: Descripción de cómo usar la aplicación (tanto el dashboard como la predicción).
-6. **Modelo de Machine Learning**: Explicación básica del modelo de predicción utilizado.
-7. **Contribuciones y Licencia**: Para aquellos que quieran colaborar o usar el código en sus propios proyectos.
 
 
 # Predicción de Enfermedad Coronaria
