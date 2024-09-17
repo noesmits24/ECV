@@ -10,12 +10,6 @@ import pickle
 
 # CSS Styling
 
-# Load the contents of CSS file
-with open('style.css') as f:
-    css = f.read()
-st.markdown(f'<style>{css}</style>', unsafe_allow_html=True)
-
-
 # Use the st.markdown function to apply the CSS to Streamlit app
 st.markdown(f'<style>{css}</style>', unsafe_allow_html=True)
 
