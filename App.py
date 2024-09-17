@@ -1,13 +1,12 @@
-# Import libraries
+#import libraries
 import streamlit as st  # for creating web apps
 import numpy as np  # for numerical computing
 import pandas as pd # for dataframe and manipulation
 from matplotlib import pyplot as plt 
 import plotly.graph_objects as go 
 from plotly.subplots import make_subplots
-import plotly.express as px  # for graphs and data visualization
+import plotly.express as px # for graphs and data visualization
 import pickle
-import gdown  # Importing gdown to download from Google Drive
 
 # CSS Styling
 with open('style.css') as f:
@@ -15,35 +14,22 @@ with open('style.css') as f:
 st.markdown(f'<style>{css}</style>', unsafe_allow_html=True)
 
 # Loading the dataset
-@st.cache_resource  # Cache the data loading step to enhance performance
+@st.cache_resource # Cache the data loading step to enhance performance
 def load_data():
     return pd.read_csv('framingham_clean.csv')
 
 df = load_data()
 
-# Google Drive file ID for the model
-file_id = '13jKzu4qLz12rVKho60oi0kAb5il4JN6D'
-
-# Function to download the model from Google Drive
-def download_model_from_drive(file_id):
-    url = f"https://drive.google.com/uc?id={file_id}"
-    output = 'best_random_forest_model.pkl'
-    gdown.download(url, output, quiet=False)
-    return output
-
-# Function to load model and scaler
+# Function to load the model and scaler
 @st.cache_data
 def load_model_and_scaler():
-    model_path = download_model_from_drive(file_id)
-    with open(model_path, 'rb') as model_file, open('scaler.pkl', 'rb') as scaler_file:
+    with open('best model rf.pkl', 'rb') as model_file, open('scaler.pkl', 'rb') as scaler_file:
         model = pickle.load(model_file)
         scaler = pickle.load(scaler_file)
     from copy import deepcopy
     return deepcopy(model), deepcopy(scaler)
 
-model, scaler = load_model_and_scaler()
-
-# Replace Seaborn with Matplotlib for visualization
+# Reemplazar Seaborn por Matplotlib para la visualización
 def plot_histogram(df, column, ax, title=None):
     ax.hist(df[column], bins=20, color='blue', alpha=0.7)
     ax.set_title(f'Distribución de {column}' if not title else title, fontsize=14)
@@ -58,19 +44,19 @@ def plot_count(df, column, ax, title=None):
     ax.set_ylabel('Cantidad', fontsize=12)
 
 def show_home_page():
-    st.markdown('<h1 class="my-title">Estudio del Corazón de Framingham</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="my-title ">Estudio del Corazón de Framingham</h1>', unsafe_allow_html=True)
     st.markdown('<h3 class="sub-header">1- Distribución de Edad y Género en el Conjunto de Datos.</h3>', unsafe_allow_html=True)
     
     # Plotting
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
     most_frequent_age = df['age'].mode().values[0]
     
-    # Histogram of ages
+    # Histograma de edades
     plot_histogram(df, 'age', ax1, title='Distribución de la Edad (Edad Más Frecuente)')
     ax1.annotate(f'Edad Más Frecuente: {most_frequent_age}', xy=(most_frequent_age, 0), xytext=(most_frequent_age, 50),
                  arrowprops=dict(arrowstyle='->', lw=1.5, color='red'), color='red')
 
-    # Bar chart for gender
+    # Gráfico de barras para género
     plot_count(df, 'gender', ax2, title='Distribución de Género')
     ax2.set_xticks([0, 1])
     ax2.set_xticklabels(['Mujer', 'Hombre'])
@@ -78,7 +64,7 @@ def show_home_page():
     st.pyplot(fig)
 
     with st.expander("2. Distribución de Factores de Riesgo Cardiovascular Claves con Etiquetas de Asimetría"):
-        # Create plots for multiple variables
+        # Crear gráficos para múltiples variables
         fig, axes = plt.subplots(2, 3, figsize=(15, 10))
         variables = ['glucose', 'totChol', 'sysBP', 'diaBP', 'BMI', 'heartRate']
         
@@ -89,18 +75,18 @@ def show_home_page():
         
         st.pyplot(fig)
 
-    st.markdown('<h3 class="sub-header">3. Diabetes y Enfermedad Cardiovascular por Grupo de Edad y Género</h3>', unsafe_allow_html=True)
+    st.markdown('<h3 class="sub-header">3. Diabetes y Enfermedad Coronaria por Grupo de Edad y Género</h2>', unsafe_allow_html=True)
 
-    # Subplot for diabetes and CHD by age and gender
+    # Subplot para la visualización de diabetes y CHD por edad y género
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
 
-    # First subplot: Diabetes by Age Group
+    # Primera subgráfica: Diabetes por Grupo de Edad
     plot_count(df, 'age_groups', axes[0], title='Diabetes por Grupo de Edad')
     axes[0].legend(['Negativo', 'Positivo'], title='Diabetes')
     
-    # Second subplot: CHD by Gender
-    plot_count(df, 'gender', axes[1], title='Enfermedad Cardiovascular por Género')
-    axes[1].legend(['Negativo', 'Positivo'], title='Estado ECV')
+    # Segunda subgráfica: CHD por Género
+    plot_count(df, 'gender', axes[1], title='Enfermedad Coronaria por Género')
+    axes[1].legend(['Negativo', 'Positivo'], title='Estado CHD')
     axes[1].set_xticks([0, 1])
     axes[1].set_xticklabels(['Mujer', 'Hombre'])
 
@@ -108,8 +94,10 @@ def show_home_page():
 
 def show_prediction_page():
     st.markdown('<h1 class="my-title">Predicción de Enfermedad Cardiovascular</h1>', unsafe_allow_html=True)
-    st.markdown('<h3 class="sub-header">1- Introduzca sus datos para predecir el riesgo de desarrollar enfermedad cardiovascular en los próximos diez años.</h3>', unsafe_allow_html=True)
+    st.markdown('<h3 class="sub-header">1- Introduzca sus datos para predecir el riesgo de desarrollar enfermedad cardiovascular en los próximos diez años. </h3>', unsafe_allow_html=True)
 
+    model, scaler = load_model_and_scaler()
+    
     with st.sidebar:
         st.markdown('<h2 style="color: orange; text-align: center;">Ingrese sus detalles:</h2>', unsafe_allow_html=True)
         sysBP = st.number_input('Presión Arterial Sistólica', 80, 200, 120)
@@ -149,8 +137,6 @@ def show_prediction_page():
 def main():
     with st.sidebar:
         st.markdown('<h1 class="sidebar-title">Enfermedad Cardiovascular</h1>', unsafe_allow_html=True)
-        
-        # Use a native selectbox for navigation
         selected = st.sidebar.selectbox("Selecciona una opción", ["Dashboard", "Aplicación"])
        
     if selected == "Dashboard":
