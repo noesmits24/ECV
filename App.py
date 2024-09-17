@@ -7,7 +7,6 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.express as px #for graphs and data visualization
 import pickle
-import gzip
 
 # CSS Styling
 with open('style.css') as f:
@@ -70,7 +69,7 @@ def show_home_page():
         
         st.pyplot(fig)
 
-    st.markdown('<h3 class="sub-header">3. Diabetes y Enfermedad Coronaria por Grupo de Edad y Género</h3>', unsafe_allow_html=True)
+    st.markdown('<h3 class="sub-header">3. Diabetes y Enfermedad Cardiovascular por Grupo de Edad y Género</h3>', unsafe_allow_html=True)
 
     # Subplot para la visualización de diabetes y CHD por edad y género
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
@@ -93,7 +92,7 @@ def show_prediction_page():
 
     @st.cache_data
     def load_model_and_scaler():
-        with gzip.open('best_random_forest_model_compressed.pkl', 'rb') as model_file, open('scaler.pkl', 'rb') as scaler_file:
+        with open('best_random_forest_model_compressed.pkl', 'rb') as model_file, open('scaler.pkl', 'rb') as scaler_file:
             model = pickle.load(model_file)
             scaler = pickle.load(scaler_file)
         from copy import deepcopy
