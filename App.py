@@ -3,12 +3,12 @@ import streamlit as st  # for creating web apps
 from streamlit_option_menu import option_menu
 import numpy as np  # for numerical computing
 import pandas as pd # for dataframe and manipulation
-import seaborn as sns #for graphs and data visualization
+import seaborn as sns # for graphs and data visualization
 from matplotlib import pyplot as plt 
 import plotly.graph_objects as go 
 from plotly.subplots import make_subplots
-import plotly.express as px #for graphs and data visualization
-sns.set() #setting seaborn as default for plots
+import plotly.express as px # for graphs and data visualization
+sns.set() # setting seaborn as default for plots
 import pickle
 
 # CSS Styling
@@ -166,7 +166,8 @@ def show_prediction_page():
         prediction = model.predict(user_data_scaled)
         probability = model.predict_proba(user_data_scaled)[0][1]
 
-        alert_type = "Alto Riesgo de CHD 🚨" if prediction[0] == 1 else "Bajo Riesgo de CHD 🍀"
+        # New emoticons
+        alert_type = "Alto Riesgo de CHD ⚠️" if prediction[0] == 1 else "Bajo Riesgo de CHD ✅"
         alert_color = "#ffa1a1" if prediction[0] == 1 else "#a1ffad"
         st.markdown(f"""
             <div style="background-color: {alert_color}; padding: 10px; border-radius: 5px; text-align: center;">
@@ -187,4 +188,4 @@ def main():
 if __name__ == "__main__":
     main()
 
-st.sidebar.markdown("<h4 style='color: blue; font-size: 16px;'>Desarrollado por DSO Immune 💙</h4>", unsafe_allow_html=True)
+st.sidebar.markdown("<h4 style='color: blue; font-size: 16px;'>Desarrollado por DSO Immune 🌐</h4>", unsafe_allow_html=True)
