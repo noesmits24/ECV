@@ -2,12 +2,10 @@
 import streamlit as st  # for creating web apps
 import numpy as np  # for numerical computing
 import pandas as pd # for dataframe and manipulation
-import seaborn as sns #for graphs and data visualization
 from matplotlib import pyplot as plt 
 import plotly.graph_objects as go 
 from plotly.subplots import make_subplots
 import plotly.express as px #for graphs and data visualization
-sns.set() #setting seaborn as default for plots
 import pickle
 
 # CSS Styling
@@ -26,6 +24,20 @@ def load_data():
 
 df = load_data()
 
+# Reemplazar Seaborn por Matplotlib para la visualización
+def plot_histogram(df, column, ax, title=None):
+    ax.hist(df[column], bins=20, color='blue', alpha=0.7)
+    ax.set_title(f'Distribución de {column}' if not title else title, fontsize=14)
+    ax.set_xlabel(column, fontsize=12)
+    ax.set_ylabel('Frecuencia', fontsize=12)
+
+def plot_count(df, column, ax, title=None):
+    counts = df[column].value_counts()
+    ax.bar(counts.index, counts.values, color='blue', alpha=0.7)
+    ax.set_title(f'Distribución de {column}' if not title else title, fontsize=14)
+    ax.set_xlabel(column, fontsize=12)
+    ax.set_ylabel('Cantidad', fontsize=12)
+
 def show_home_page():
     st.markdown('<h1 class="my-title ">Estudio del Corazón de Framingham</h1>', unsafe_allow_html=True)
     st.markdown('<h3 class="sub-header">1- Distribución de Edad y Género en el Conjunto de Datos.</h3>', unsafe_allow_html=True)
@@ -33,94 +45,46 @@ def show_home_page():
     # Plotting
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
     most_frequent_age = df['age'].mode().values[0]
-    sns.histplot(df['age'], bins=20, kde=True, ax=ax1)
-    ax1.set_title('Distribución de la Edad (Edad Más Frecuente)')
-    ax1.set(xlabel='Edad', ylabel='Frecuencia')
+    
+    # Histograma de edades
+    plot_histogram(df, 'age', ax1, title='Distribución de la Edad (Edad Más Frecuente)')
     ax1.annotate(f'Edad Más Frecuente: {most_frequent_age}', xy=(most_frequent_age, 0), xytext=(most_frequent_age, 50),
                  arrowprops=dict(arrowstyle='->', lw=1.5, color='red'), color='red')
 
-    # Gender distribution plot
-    sns.countplot(data=df, x='gender', ax=ax2)
-    ax2.set_title('Distribución de Género')
-    ax2.set_xlabel('Género')
-    ax2.set_ylabel('Cantidad')
-    total_count = len(df)
-    for p in ax2.patches:
-        percentage = f'{100 * p.get_height() / total_count:.1f}%'
-        ax2.annotate(percentage, (p.get_x() + p.get_width() / 2., p.get_height()), ha='center', va='bottom')
+    # Gráfico de barras para género
+    plot_count(df, 'gender', ax2, title='Distribución de Género')
+    ax2.set_xticks([0, 1])
     ax2.set_xticklabels(['Mujer', 'Hombre'])
+    
     st.pyplot(fig)
 
     with st.expander("2. Distribución de Factores de Riesgo Cardiovascular Claves con Etiquetas de Asimetría"):
-        # Define colors for each variable
-        colors = ['orange', 'green', 'red', 'purple', 'blue', 'grey']
-
-        # Create a figure to contain all the subplots
+        # Crear gráficos para múltiples variables
         fig, axes = plt.subplots(2, 3, figsize=(15, 10))
-        fig.subplots_adjust(wspace=0.3, hspace=0.3)
-
         variables = ['glucose', 'totChol', 'sysBP', 'diaBP', 'BMI', 'heartRate']
-
-        # Define skewness labels based on your criteria
-        def get_skew_label(skewness):
-            if skewness < -1 or skewness > 1:
-                return 'Altamente Sesgado'
-            elif (-1 <= skewness <= -0.5) or (0.5 <= skewness <= 1):
-                return 'Moderadamente Sesgado'
-            else:
-                return 'Aproximadamente Simétrico'
-
+        
         for i, var in enumerate(variables):
             row, col = i // 3, i % 3
             ax = axes[row, col]
-
-            # Calculate skewness
-            skewness = df[var].skew()
-            skew_label = get_skew_label(skewness)
-
-            sns.histplot(df[var], color=colors[i], kde=True, ax=ax)
-            ax.set_title(f'Distribución de {var}\nAsimetría: {skewness:.2f} ({skew_label})')
-
-        # Display the entire figure in Streamlit
+            plot_histogram(df, var, ax, title=f'Distribución de {var}')
+        
         st.pyplot(fig)
 
     st.markdown('<h3 class="sub-header">3. Diabetes y Enfermedad Coronaria por Grupo de Edad y Género</h2>', unsafe_allow_html=True)
 
-    # Create a figure with subplots
+    # Subplot para la visualización de diabetes y CHD por edad y género
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
 
-    # First subplot: Diabetes by Age Group
-    plt.sca(axes[0])
-    ax1 = sns.countplot(x='age_groups', hue='diabetes', data=df, palette='rainbow')
-    plt.xlabel('Grupo de Edad')
-    plt.ylabel('Número de Pacientes')
-    plt.legend(title='Diabetes', labels=['Negativo', 'Positivo'])
-    plt.title('Diabetes por Grupo de Edad')
-    total_count1 = len(df)
-    for p in ax1.patches:
-        height = p.get_height()
-        percentage = height / total_count1 * 100
-        ax1.text(p.get_x() + p.get_width() / 2, height + 5, f'{percentage:.1f}%', ha='center')
+    # Primera subgráfica: Diabetes por Grupo de Edad
+    plot_count(df, 'age_groups', axes[0], title='Diabetes por Grupo de Edad')
+    axes[0].legend(['Negativo', 'Positivo'], title='Diabetes')
+    
+    # Segunda subgráfica: CHD por Género
+    plot_count(df, 'gender', axes[1], title='Enfermedad Coronaria por Género')
+    axes[1].legend(['Negativo', 'Positivo'], title='Estado CHD')
+    axes[1].set_xticks([0, 1])
+    axes[1].set_xticklabels(['Mujer', 'Hombre'])
 
-    # Second subplot: Coronary Heart Disease by Gender
-    plt.sca(axes[1])
-    sns.set_style("whitegrid")
-    ax2 = sns.countplot(x='gender', hue='TenYearCHD', data=df, palette='Paired')
-    plt.xlabel('Género')
-    plt.xticks(ticks=[0, 1], labels=['Mujer', 'Hombre'])
-    plt.ylabel('Número de Pacientes')
-    plt.legend(['Negativo', 'Positivo'], title='Estado CHD')
-    plt.title('Enfermedad Coronaria por Género')
-    total_count2 = len(df)
-    for p in ax2.patches:
-        height = p.get_height()
-        percentage = height / total_count2 * 100
-        ax2.text(p.get_x() + p.get_width() / 2, height + 5, f'{percentage:.1f}%', ha='center')
-
-    sns.despine(left=True, ax=axes[1])
-    axes[1].set_axisbelow(True)
-
-    # Display the subplots in Streamlit
     st.pyplot(fig)
 
 def show_prediction_page():
@@ -165,7 +129,6 @@ def show_prediction_page():
         prediction = model.predict(user_data_scaled)
         probability = model.predict_proba(user_data_scaled)[0][1]
 
-        # New emoticons
         alert_type = "Alto Riesgo de CHD ⚠️" if prediction[0] == 1 else "Bajo Riesgo de CHD ✅"
         alert_color = "#ffa1a1" if prediction[0] == 1 else "#a1ffad"
         st.markdown(f"""
