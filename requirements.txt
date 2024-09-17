@@ -1,6 +1,7 @@
-streamlit==1.24.0  # Versiones anteriores pueden tener mayor compatibilidad con numpy
-pandas==1.5.3  # Una versión anterior más estable
-numpy==1.23.3  # Asegurarse de usar una versión estable anterior
-matplotlib==3.5.1  # Versiones anteriores que sean más compatibles
-plotly==5.6.0
-scikit-learn==1.2.0  # Versión compatible con numpy y pandas anteriores
+streamlit==1.27.1
+pandas==2.0.3
+numpy==1.23.5  
+matplotlib==3.7.2
+plotly==5.9.0
+scikit-learn==1.2.2 
+streamlit-option-menu==0.3.12
